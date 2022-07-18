@@ -26,7 +26,6 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.pakToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.unpakToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.tbxConsole = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -55,11 +54,6 @@
             this.unpakToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
             this.unpakToolStripMenuItem.Text = "Unpak";
             this.unpakToolStripMenuItem.Click += new System.EventHandler(this.unpakToolStripMenuItem_Click);
-            // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            this.openFileDialog1.Multiselect = true;
             // 
             // tbxConsole
             // 
@@ -94,7 +88,6 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem pakToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem unpakToolStripMenuItem;
-        private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox tbxConsole;
     }
 }

@@ -12,14 +12,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyPak", "TinyPak\TinyPak.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Debug|x64.ActiveCfg = Debug|x64
+		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Debug|x64.Build.0 = Debug|x64
+		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Release|x64.ActiveCfg = Release|x64
+		{4C0ED821-E8E4-4E56-8C33-8E82F39BFEF4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

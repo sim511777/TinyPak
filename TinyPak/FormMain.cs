@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace TinyPak {
     public partial class FormMain : Form {
@@ -16,10 +17,12 @@ namespace TinyPak {
         }
 
         private void pakToolStripMenuItem_Click(object sender, EventArgs e) {
-            var r = openFileDialog1.ShowDialog(this);
-            if (r != DialogResult.OK)
+            var dlg = new CommonOpenFileDialog();
+            dlg.IsFolderPicker = true;
+            var r = dlg.ShowDialog(this.Handle);
+            if (r != CommonFileDialogResult.Ok)
                 return;
-            foreach (var file in openFileDialog1.FileNames) {
+            foreach (var file in dlg.FileNames) {
                 Console.WriteLine(file);
             }
         }
