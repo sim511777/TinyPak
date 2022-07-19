@@ -25,22 +25,39 @@ namespace TinyPak {
                 return;
             
             var dir = new DirectoryInfo(dlg.FileName);
-            List<byte> buffer = new List<byte>();
-            PakDirectory(dir, buffer);
+            byte[] buffer = PakFileSystemInfo(dir);
         }
 
-        private void PakDirectory(DirectoryInfo parentDir, List<byte> buffer) {
-            var dirs = parentDir.GetDirectories();
-            var files = parentDir.GetFiles();
+        private byte[] PakFileSystemInfo(FileSystemInfo fsi) {
+            List<byte> buffer = new List<byte>();
+            buffer.AddRange(BitConverter.GetBytes((int)fsi.Attributes));            // 파일 정보
+            buffer.AddRange(BitConverter.GetBytes(fsi.CreationTimeUtc.Ticks));      // 생성 시간
+            buffer.AddRange(BitConverter.GetBytes(fsi.LastWriteTimeUtc.Ticks));     // 마지막 기록 시간
+            buffer.AddRange(BitConverter.GetBytes(fsi.LastAccessTimeUtc.Ticks));    // 마지막 접속 시간
+            
+            byte[] nameEnc = Encoding.UTF8.GetBytes(fsi.Name);
+            buffer.AddRange(BitConverter.GetBytes(nameEnc.Length));                 // 이름 길이 기록
+            buffer.AddRange(nameEnc);                                               // 이름 기록
 
-            buffer.AddRange(BitConverter.GetBytes(dirs.Length));    // 폴더 개수 인코딩
-            buffer.AddRange(BitConverter.GetBytes(files.Length));   // 파일 개수 인코딩
-            foreach (var dir in dirs) {
-                PakDirectoryInfo(dir, buffer);  // 폴더 정보 인코딩
+            if (fsi is FileInfo fi) {
+                byte[] fileEnc = File.ReadAllBytes(fi.FullName);
+                buffer.AddRange(BitConverter.GetBytes(fileEnc.Length));             // 파일 길이 기록
+                buffer.AddRange(fileEnc);                                           // 파일 기록
+            } else if (fsi is DirectoryInfo di) {
+                var childInfos = di.GetFileSystemInfos();
+                buffer.AddRange(BitConverter.GetBytes(childInfos.Length));          // 차일드 갯수 기록
+                foreach (var fsiChildren in childInfos) {
+                    byte[] childEnc = PakFileSystemInfo(fsiChildren);
+                    buffer.AddRange(BitConverter.GetBytes(childEnc.Length));        // 차일드 데이터 크기 기록
+                    buffer.AddRange(childEnc);                                      // 파일 데이터 기록
+                }
             }
-            foreach (var file in files) {
-                PakFileInfo(file, buffer);      // 파일 정보 인코딩
-            }
+
+            return buffer.ToArray();
+        }
+
+        private List<byte> PakFile(FileInfo fileInfo) {
+            throw new NotImplementedException();
         }
 
         private void PakDirectoryInfo(DirectoryInfo dir, List<byte> buffer) {
@@ -54,5 +71,16 @@ namespace TinyPak {
         private void unpakToolStripMenuItem_Click(object sender, EventArgs e) {
 
         }
+    }
+
+    public class SFileInfo {
+        public FileAttributes Attributes;
+        public DateTime CreationTimeUtc;
+        public DateTime LastAccessTimeUtc;
+        public DateTime LastWriteTImeUtc;
+        public int NameOffset;
+        public int NameSize;
+        public int DataOffset;
+        public int DataSize;
     }
 }
