@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -24,63 +25,92 @@ namespace TinyPak {
             if (r != CommonFileDialogResult.Ok)
                 return;
             
+            var t0 = Stopwatch.GetTimestamp();
+            
             var dir = new DirectoryInfo(dlg.FileName);
-            byte[] buffer = PakFileSystemInfo(dir);
+            byte[] buffer = EncodeFileSystemInfo(dir);
+            
+            var t1 = Stopwatch.GetTimestamp();
+
+            var fileName = Path.GetFileNameWithoutExtension(dlg.FileName);
+            string pakPath;
+            int i = 0;
+            do {
+                if (i == 0)
+                    pakPath = Path.Combine(Path.GetDirectoryName(dlg.FileName), fileName +  ".pak");
+                else if (i == 1)
+                    pakPath = Path.Combine(Path.GetDirectoryName(dlg.FileName), fileName + " - 복사본.pak");
+                else
+                    pakPath = Path.Combine(Path.GetDirectoryName(dlg.FileName), fileName + $" - 복사본 ({i}).pak");
+                i++;
+            } while (File.Exists(pakPath));
+            File.WriteAllBytes(pakPath, buffer);
+            
+            var t2 = Stopwatch.GetTimestamp();
+            
+            Console.WriteLine($"{pakPath} saved successfully : {buffer.Length}bytes");
+            var tPak = (t1 - t0) * 1000.0 / Stopwatch.Frequency;
+            var tSave = (t2 - t1) * 1000.0 / Stopwatch.Frequency;
+            Console.WriteLine($"pak time : {tPak:f0}ms");
+            Console.WriteLine($"save time : {tSave:f0}ms");
         }
 
-        private byte[] PakFileSystemInfo(FileSystemInfo fsi) {
-            List<byte> buffer = new List<byte>();
-            buffer.AddRange(BitConverter.GetBytes((int)fsi.Attributes));            // 파일 정보
-            buffer.AddRange(BitConverter.GetBytes(fsi.CreationTimeUtc.Ticks));      // 생성 시간
-            buffer.AddRange(BitConverter.GetBytes(fsi.LastWriteTimeUtc.Ticks));     // 마지막 기록 시간
-            buffer.AddRange(BitConverter.GetBytes(fsi.LastAccessTimeUtc.Ticks));    // 마지막 접속 시간
-            
-            byte[] nameEnc = Encoding.UTF8.GetBytes(fsi.Name);
-            buffer.AddRange(BitConverter.GetBytes(nameEnc.Length));                 // 이름 길이 기록
-            buffer.AddRange(nameEnc);                                               // 이름 기록
-
-            if (fsi is FileInfo fi) {
-                byte[] fileEnc = File.ReadAllBytes(fi.FullName);
-                buffer.AddRange(BitConverter.GetBytes(fileEnc.Length));             // 파일 길이 기록
-                buffer.AddRange(fileEnc);                                           // 파일 기록
-            } else if (fsi is DirectoryInfo di) {
-                var childInfos = di.GetFileSystemInfos();
-                buffer.AddRange(BitConverter.GetBytes(childInfos.Length));          // 차일드 갯수 기록
-                foreach (var fsiChildren in childInfos) {
-                    byte[] childEnc = PakFileSystemInfo(fsiChildren);
-                    buffer.AddRange(BitConverter.GetBytes(childEnc.Length));        // 차일드 데이터 크기 기록
-                    buffer.AddRange(childEnc);                                      // 파일 데이터 기록
-                }
+        private byte[] EncodeFileSystemInfo(FileSystemInfo sinfo) {
+            if (sinfo is FileInfo finfo) {
+                return File.ReadAllBytes(finfo.FullName);               // 파일 데이터 리턴
             }
 
+            List<byte> buffer = new List<byte>();
+            var dinfo = sinfo as DirectoryInfo;
+            var childs = dinfo.GetFileSystemInfos();
+            buffer.AddRange(BitConverter.GetBytes(childs.Length));  // 자식 갯수 기록
+            var infoOffset = buffer.Count;
+            var encodedList = childs.Select(child => Tuple.Create(child, Encoding.UTF8.GetBytes(child.Name), EncodeFileSystemInfo(child)));
+            foreach (var child in childs) {
+                buffer.AddRange(BitConverter.GetBytes((int)child.Attributes));              // [4] 파일 정보
+                buffer.AddRange(BitConverter.GetBytes(child.CreationTimeUtc.Ticks));        // [8] 생성 시간
+                buffer.AddRange(BitConverter.GetBytes(child.LastWriteTimeUtc.Ticks));       // [8] 마지막 기록 시간
+                buffer.AddRange(BitConverter.GetBytes(child.LastAccessTimeUtc.Ticks));      // [8] 마지막 접속 시간
+                buffer.AddRange(BitConverter.GetBytes(0));                                  // [4] 이름 옵셋 들어갈 자리
+                buffer.AddRange(BitConverter.GetBytes(0));                                  // [4] 이름 사이즈 들어갈 자리
+                buffer.AddRange(BitConverter.GetBytes(0));                                  // [4] 파일 옵셋 들어갈 자리
+                buffer.AddRange(BitConverter.GetBytes(0));                                  // [4] 파일 사이즈 들어갈 자리
+            }
+            int i = 0;
+            foreach (var child in childs) {
+                var nameEncOffset = buffer.Count;
+                var nameEnc = Encoding.UTF8.GetBytes(child.Name);                           // 이름 데이터
+                buffer.AddRange(nameEnc);
+
+                var dataEncOffset = buffer.Count;
+                var dataEnc = EncodeFileSystemInfo(child);                                  // 파일 데이터
+                buffer.AddRange(dataEnc);
+
+                // 이름,데이터 옵셋과 사이즈 쓰기
+                int baseIndex = infoOffset + 44 * i;
+                int nameOffsetIndex = baseIndex + 28;
+                int nameSizeIndex = baseIndex + 32;
+                int dataOffsetIndex = baseIndex + 36;
+                int dataSizeIndex = baseIndex + 40;
+
+                WriteByteArraryToList(buffer, nameOffsetIndex, BitConverter.GetBytes(nameEncOffset));
+                WriteByteArraryToList(buffer, nameSizeIndex, nameEnc);
+                WriteByteArraryToList(buffer, dataOffsetIndex, BitConverter.GetBytes(dataEncOffset));
+                WriteByteArraryToList(buffer, dataSizeIndex, dataEnc);
+
+                i++;
+            }
             return buffer.ToArray();
         }
 
-        private List<byte> PakFile(FileInfo fileInfo) {
-            throw new NotImplementedException();
-        }
-
-        private void PakDirectoryInfo(DirectoryInfo dir, List<byte> buffer) {
-            throw new NotImplementedException();
-        }
-
-        private void PakFileInfo(FileInfo file, List<byte> buffer) {
-            throw new NotImplementedException();
+        public static void WriteByteArraryToList(List<byte> byteList, int index, byte[] byteArray) {
+            for (int i = 0; i < byteArray.Length; i++) {
+                byteList[index + i] = byteArray[i];
+            }
         }
 
         private void unpakToolStripMenuItem_Click(object sender, EventArgs e) {
 
         }
-    }
-
-    public class SFileInfo {
-        public FileAttributes Attributes;
-        public DateTime CreationTimeUtc;
-        public DateTime LastAccessTimeUtc;
-        public DateTime LastWriteTImeUtc;
-        public int NameOffset;
-        public int NameSize;
-        public int DataOffset;
-        public int DataSize;
     }
 }
