@@ -36,7 +36,7 @@ namespace TinyPak {
 
         public static string MakeNewDirectoryPath(string dirPath) {
             var dirName = Path.GetDirectoryName(dirPath);
-            var fileName = Path.GetFileNameWithoutExtension(dirPath);
+            var fileName = Path.GetFileName(dirPath);
             string newPath;
             int i = 0;
             do {

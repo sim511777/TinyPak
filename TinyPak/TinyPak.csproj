@@ -75,7 +75,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileSystemDecoder.cs" />
     <Compile Include="FileSystemEncoder.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>

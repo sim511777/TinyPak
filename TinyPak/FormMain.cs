@@ -50,6 +50,24 @@ namespace TinyPak {
             var r = dlg.ShowDialog(this.Handle);
             if (r != CommonFileDialogResult.Ok)
                 return;
+
+            var pakPath = dlg.FileName;
+            var dir = Path.GetDirectoryName(pakPath);
+            var fname = Path.GetFileNameWithoutExtension(pakPath);
+            var dirPath = Util.MakeNewDirectoryPath(dir + "\\" + fname);
+            Directory.CreateDirectory(dirPath);
+            var dinfo = new DirectoryInfo(dirPath);
+
+            // 디코딩
+            var t0 = Util.GetTimeMs();
+            using (var sr = new FileStream(pakPath, FileMode.Open)) {
+                FileSystemEncoder.DecodeDirectory(sr, dinfo);
+            }
+            var t1 = Util.GetTimeMs();
+
+            // 결과 출력
+            Console.WriteLine($"{pakPath} decoded successfully");
+            Console.WriteLine($"encode time : {(t1 - t0):f0}ms");
         }
     }
 }
