@@ -36,20 +36,20 @@ namespace TinyPak {
             // 이름, 파일시스템 데이터 기록
             var tableDic = new Dictionary<FileSystemInfo, FileSystemInfoTable>();
             foreach (var sinfo in sinfos) {
-                // 파일시스템 이름, 파일시스템 데이터 기록
-                var nameOffset = sr.Position - oldPos;
-                var nameSize = EncodeString(sr, sinfo.Name);
-                var dataOffset = sr.Position - oldPos;
-                long dataSize;
+                var table = new FileSystemInfoTable();
+                tableDic[sinfo] = table;
+                table.attributes = sinfo.Attributes;
+                table.nameOffset = sr.Position - oldPos;
+                table.nameSize = EncodeString(sr, sinfo.Name);
+                table.dataOffset = sr.Position - oldPos;
                 var bFile = !sinfo.Attributes.HasFlag(FileAttributes.Directory);
                 if (bFile) {
                     var finfo = sinfo as FileInfo;
-                    dataSize = EncodeFile(sr, finfo);
+                    table.dataSize = EncodeFile(sr, finfo);
                 } else {
                     var dinfo = sinfo as DirectoryInfo;
-                    dataSize = EncodeDirectory(sr, dinfo.GetFileSystemInfos());
+                    table.dataSize = EncodeDirectory(sr, dinfo.GetFileSystemInfos());
                 }
-                tableDic[sinfo] = new FileSystemInfoTable(sinfo.Attributes, nameOffset, nameSize, dataOffset, dataSize);
             }
             
             // 파일 정보 기록
@@ -177,17 +177,5 @@ namespace TinyPak {
         public long nameSize;
         public long dataOffset;
         public long dataSize;
-
-        public FileSystemInfoTable() {
-
-        }
-
-        public FileSystemInfoTable(FileAttributes attributes, long nameOffset, long nameSize, long dataOffset, long dataSize) {
-            this.attributes = attributes;
-            this.nameOffset = nameOffset;
-            this.nameSize = nameSize;
-            this.dataOffset = dataOffset;
-            this.dataSize = dataSize;
-        }
     }
 }
