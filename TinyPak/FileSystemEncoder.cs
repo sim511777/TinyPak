@@ -30,7 +30,7 @@ namespace TinyPak {
             // 파일 정보 기록할 공간 확보
             var tablePos = sr.Position;
             for (int i = 0; i < sinfos.Length; i++) {
-                sr.Write(dummyBuffer, 0, (int)FileSystemInfoTableSize);
+                sr.Write(FileSystemInfoTable.DummyBuffer, 0, (int)FileSystemInfoTable.StructSize);
             }
 
             // 이름, 파일시스템 데이터 기록
@@ -49,7 +49,7 @@ namespace TinyPak {
                     var dinfo = sinfo as DirectoryInfo;
                     dataSize = EncodeDirectory(sr, dinfo.GetFileSystemInfos());
                 }
-                tableDic[sinfo] = new FileSystemInfoTable(sinfo.Attributes, sinfo.CreationTimeUtc, sinfo.LastAccessTimeUtc, sinfo.LastAccessTimeUtc, nameOffset, nameSize, dataOffset, dataSize);
+                tableDic[sinfo] = new FileSystemInfoTable(sinfo.Attributes, nameOffset, nameSize, dataOffset, dataSize);
             }
             
             // 파일 정보 기록
@@ -62,18 +62,13 @@ namespace TinyPak {
             return sr.Position - oldPos;
         }
 
-        public const long FileSystemInfoTableSize = 60;
-        public static readonly byte[] dummyBuffer = new byte[FileSystemInfoTableSize];
         public static long EncodeFileSystemInfoTable(Stream sr, FileSystemInfoTable table) {
             EncodeInt(sr, (int)table.attributes);               // ( 0, 4) 파일 속성
-            EncodeLong(sr, table.creationTimeUtc.Ticks);        // ( 4, 8) 생성 시간
-            EncodeLong(sr, table.lastAccessTimeUtc.Ticks);      // (12, 8) 접속 시간
-            EncodeLong(sr, table.lastWriteTimeUtc.Ticks);       // (20, 8) 기록 시간
-            EncodeLong(sr, table.nameOffset);                // (28, 8) 이름 데이터 옵셋
-            EncodeLong(sr, table.nameSize);                // (36, 8) 이름 데이터 사이즈
-            EncodeLong(sr, table.dataOffset);                // (44, 8) 파일 데이터 옵셋
-            EncodeLong(sr, table.dataSize);                // (52, 8) 파일 데이터 사이즈
-            return FileSystemInfoTableSize;
+            EncodeLong(sr, table.nameOffset);                // (4, 8) 이름 데이터 옵셋
+            EncodeLong(sr, table.nameSize);                // (12, 8) 이름 데이터 사이즈
+            EncodeLong(sr, table.dataOffset);                // (20, 8) 파일 데이터 옵셋
+            EncodeLong(sr, table.dataSize);                // (28, 8) 파일 데이터 사이즈
+            return FileSystemInfoTable.StructSize;
         }
 
         // 파일 데이터 인코딩
@@ -127,16 +122,10 @@ namespace TinyPak {
                     sr.Position = oldPos + table.dataOffset;
                     var finfo = new FileInfo(filePath);
                     DecodeFile(sr, table.dataSize, finfo);
-                    finfo.CreationTimeUtc = table.creationTimeUtc;
-                    finfo.LastAccessTimeUtc = table.lastAccessTimeUtc;
-                    finfo.LastWriteTimeUtc = table.lastWriteTimeUtc;
                 } else {
                     var dirPath = Util.MakeNewDirectoryPath(dinfo.FullName + "\\" + name);
                     Directory.CreateDirectory(dirPath);
                     var childDirInfo = new DirectoryInfo(dirPath);
-                    childDirInfo.CreationTimeUtc = table.creationTimeUtc;
-                    childDirInfo.LastAccessTimeUtc = table.lastAccessTimeUtc;
-                    childDirInfo.LastWriteTimeUtc = table.lastWriteTimeUtc;
                     sr.Position = oldPos + table.dataOffset;
                     DecodeDirectory(sr, childDirInfo);
                 }
@@ -146,9 +135,6 @@ namespace TinyPak {
         public static FileSystemInfoTable DecodeFileSystemInfoTable(Stream sr) {
             FileSystemInfoTable table = new FileSystemInfoTable();
             table.attributes = (FileAttributes)DecodeInt(sr);
-            table.creationTimeUtc = new DateTime(DecodeLong(sr));
-            table.lastAccessTimeUtc = new DateTime(DecodeLong(sr));
-            table.lastWriteTimeUtc = new DateTime(DecodeLong(sr));
             table.nameOffset = DecodeLong(sr);
             table.nameSize = DecodeLong(sr);
             table.dataOffset = DecodeLong(sr);
@@ -183,10 +169,10 @@ namespace TinyPak {
     }
 
     public class FileSystemInfoTable {
+        public const long StructSize = 36;
+        public static readonly byte[] DummyBuffer = new byte[StructSize];
+
         public FileAttributes attributes;
-        public DateTime creationTimeUtc;
-        public DateTime lastAccessTimeUtc;
-        public DateTime lastWriteTimeUtc;
         public long nameOffset;
         public long nameSize;
         public long dataOffset;
@@ -196,11 +182,8 @@ namespace TinyPak {
 
         }
 
-        public FileSystemInfoTable(FileAttributes attributes, DateTime creationTimeUtc, DateTime lastAccessTimeUtc, DateTime lastWriteTimeUtc, long nameOffset, long nameSize, long dataOffset, long dataSize) {
+        public FileSystemInfoTable(FileAttributes attributes, long nameOffset, long nameSize, long dataOffset, long dataSize) {
             this.attributes = attributes;
-            this.creationTimeUtc = creationTimeUtc;
-            this.lastAccessTimeUtc = lastAccessTimeUtc;
-            this.lastWriteTimeUtc = lastWriteTimeUtc;
             this.nameOffset = nameOffset;
             this.nameSize = nameSize;
             this.dataOffset = dataOffset;
