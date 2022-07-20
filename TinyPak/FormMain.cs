@@ -9,8 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.WindowsAPICodePack.Dialogs;
-
 namespace TinyPak {
     public partial class FormMain : Form {
         public FormMain() {
@@ -19,14 +17,13 @@ namespace TinyPak {
         }
 
         private void pakToolStripMenuItem_Click(object sender, EventArgs e) {
-            var dlg = new CommonOpenFileDialog();
-            dlg.IsFolderPicker = true;
-            var r = dlg.ShowDialog(this.Handle);
-            if (r != CommonFileDialogResult.Ok)
+            var dlg = new FolderBrowserDialog();
+            var r = dlg.ShowDialog(this);
+            if (r != DialogResult.OK)
                 return;
 
-            var dir = new DirectoryInfo(dlg.FileName);                      // 입력 디렉토리
-            string pakPath = Util.MakeNewFilePath(dlg.FileName + ".pak");   // 출력 파일
+            var dir = new DirectoryInfo(dlg.SelectedPath);                      // 입력 디렉토리
+            string pakPath = Util.MakeNewFilePath(dlg.SelectedPath + ".pak");   // 출력 파일
 
             long size;
 
@@ -43,12 +40,11 @@ namespace TinyPak {
         }
 
         private void unpakToolStripMenuItem_Click(object sender, EventArgs e) {
-            var dlg = new CommonOpenFileDialog();
-            dlg.IsFolderPicker = false;
+            var dlg = new OpenFileDialog();
             dlg.Multiselect = false;
-            dlg.Filters.Add(new CommonFileDialogFilter("Tiny Pak Files", "pak"));
-            var r = dlg.ShowDialog(this.Handle);
-            if (r != CommonFileDialogResult.Ok)
+            dlg.Filter = "Tiny Pak Files(*.pak)|*.pak";
+            var r = dlg.ShowDialog(this);
+            if (r != DialogResult.OK)
                 return;
 
             var pakPath = dlg.FileName;
