@@ -39,9 +39,9 @@ namespace TinyPak {
                 var table = new FileSystemInfoTable();
                 tableDic[sinfo] = table;
                 table.attributes = sinfo.Attributes;
-                table.nameOffset = sr.Position - oldPos;
+                table.nameOffset = sr.Position;
                 table.nameSize = EncodeString(sr, sinfo.Name);
-                table.dataOffset = sr.Position - oldPos;
+                table.dataOffset = sr.Position;
                 var bFile = !sinfo.Attributes.HasFlag(FileAttributes.Directory);
                 if (bFile) {
                     var finfo = sinfo as FileInfo;
@@ -114,19 +114,19 @@ namespace TinyPak {
             }
             
             foreach (var table in tables) {
-                sr.Position = oldPos + table.nameOffset;
+                sr.Position = table.nameOffset;
                 var name = DecodeString(sr, table.nameSize);
                 bool bFile = !table.attributes.HasFlag(FileAttributes.Directory);
                 if (bFile) {
                     var filePath = Util.MakeNewFilePath(dinfo.FullName + "\\" + name);
-                    sr.Position = oldPos + table.dataOffset;
+                    sr.Position = table.dataOffset;
                     var finfo = new FileInfo(filePath);
                     DecodeFile(sr, table.dataSize, finfo);
                 } else {
                     var dirPath = Util.MakeNewDirectoryPath(dinfo.FullName + "\\" + name);
                     Directory.CreateDirectory(dirPath);
                     var childDirInfo = new DirectoryInfo(dirPath);
-                    sr.Position = oldPos + table.dataOffset;
+                    sr.Position = table.dataOffset;
                     DecodeDirectory(sr, childDirInfo);
                 }
             }
