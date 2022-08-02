@@ -70,7 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deflate.cs" />
-    <Compile Include="FileSystemEncoder.cs" />
+    <Compile Include="PakEncoder.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>

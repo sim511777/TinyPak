@@ -30,7 +30,7 @@ namespace TinyPak {
             // 인코딩
             var t0 = Util.GetTimeMs();
             using (var sr = new FileStream(pakPath, FileMode.Create)) {
-                size = FileSystemEncoder.EncodeDirectory(sr, dir.GetFileSystemInfos());
+                size = PakEncoder.EncodeDirectory(sr, dir.GetFileSystemInfos());
             }
             var t1 = Util.GetTimeMs();
 
@@ -57,7 +57,7 @@ namespace TinyPak {
             // 디코딩
             var t0 = Util.GetTimeMs();
             using (var sr = new FileStream(pakPath, FileMode.Open)) {
-                FileSystemEncoder.DecodeDirectory(sr, dinfo);
+                PakEncoder.DecodeDirectory(sr, dinfo);
             }
             var t1 = Util.GetTimeMs();
 
