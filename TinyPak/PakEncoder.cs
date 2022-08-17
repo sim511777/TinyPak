@@ -21,18 +21,6 @@ namespace TinyPak {
             }
             return fileSysList;
         }
-
-        public static byte[] EncodePak(FileSystemInfo[] fsinfos) {
-
-        }
-
-        public static List<FileSys> DecodeFileSys(Stream sr) {
-            List<FileSys> fileSysList = new List<FileSys>();
-            var num = sr.DecodeLong();
-            for (long i = 0; i < num; i++) {
-
-            }
-        }
     }
 
     public static class FileSystemInfo_Extensions {
@@ -110,7 +98,7 @@ namespace TinyPak {
             var oldPos = sr.Position;
             
             // 항목 개수 기록
-            EncodeLong(sr, sinfos.Length);
+            EncodeInt(sr, sinfos.Length);
             
             // 파일 정보 기록할 공간 확보
             var tablePos = sr.Position;
@@ -190,9 +178,8 @@ namespace TinyPak {
 
         // ==== decoding
         public static void DecodeDirectory(Stream sr, DirectoryInfo dinfo) {
-            var oldPos = sr.Position;
-            var childNum = DecodeLong(sr);
-            List<FileSystemInfoTable> tables = new List<FileSystemInfoTable>();
+            var childNum = DecodeInt(sr);
+            List<FileSystemInfoTable> tables = new List<FileSystemInfoTable>(childNum);
             for (int i = 0; i < childNum; i++) {
                 var table = DecodeFileSystemInfoTable(sr);
                 tables.Add(table);
