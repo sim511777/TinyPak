@@ -167,4 +167,27 @@ namespace TinyPak {
         public long dataOffset;
         public long dataSize;
     }
+
+    public class FileEncoder {       
+        public static FileSystemNode ReadDirecotry(string name, FileSystemInfo[] childInfos) {
+            var node = new FileSystemNode(name);
+            node.children = new List<FileSystemNode>();
+            foreach (var childInfo in childInfos) {
+                if (childInfo is DirectoryInfo childDirectoryInfo) {
+                    var childNode = ReadDirecotry(childDirectoryInfo.Name, childDirectoryInfo.GetFileSystemInfos());
+                    node.children.Add(childNode);
+                } else {
+                    var childNode = new FileSystemNode(childInfo.Name);
+                    node.children.Add(childNode);
+                }
+            }
+            return node;
+        }
+    }
+
+    public class FileSystemNode {
+        public string name = null;                          // null 이면 루트
+        public List<FileSystemNode> children = null;  // null 이면 파일
+        public FileSystemNode(string name) => this.name = name;
+    }
 }
