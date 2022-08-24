@@ -13,7 +13,6 @@ namespace TinyPak {
     public partial class FormMain : Form {
         public FormMain() {
             InitializeComponent();
-            Console.SetOut(new TextBoxWriter(this.tbxConsole));
         }
 
         private void pakToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -35,8 +34,8 @@ namespace TinyPak {
             var t1 = Util.GetTimeMs();
 
             // 결과 출력
-            Console.WriteLine($"{pakPath} encoded successfully : {size}bytes");
-            Console.WriteLine($"encode time : {(t1 - t0):f0}ms");
+            Log($"{dlg.SelectedPath} -> {pakPath} encoded successfully : {size}bytes");
+            Log($"encode time : {(t1 - t0):f0}ms");
         }
 
         private void unpakToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -62,8 +61,13 @@ namespace TinyPak {
             var t1 = Util.GetTimeMs();
 
             // 결과 출력
-            Console.WriteLine($"{pakPath} decoded successfully");
-            Console.WriteLine($"encode time : {(t1 - t0):f0}ms");
+            Log($"{pakPath} -> {dirPath} decoded successfully");
+            Log($"encode time : {(t1 - t0):f0}ms");
+        }
+
+        private void Log(string msg) {
+            this.tbxConsole.AppendText(msg);
+            this.tbxConsole.AppendText(Environment.NewLine);
         }
     }
 }

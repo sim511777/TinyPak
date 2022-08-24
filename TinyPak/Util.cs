@@ -16,7 +16,7 @@ namespace TinyPak {
             return GetTime() * 1000.0;
         }
 
-        public static string MakeNewFilePath(string filePath) {
+        public static string MakeNewFilePath(string filePath, string copyName = "New") {
             var dirName = Path.GetDirectoryName(filePath);
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var ext = Path.GetExtension(filePath);
@@ -26,15 +26,15 @@ namespace TinyPak {
                 if (i == 0)
                     newPath = Path.Combine(dirName, fileName + ext);
                 else if (i == 1)
-                    newPath = Path.Combine(dirName, fileName + " - 복사본" + ext);
+                    newPath = Path.Combine(dirName, fileName + $" - {copyName}" + ext);
                 else
-                    newPath = Path.Combine(dirName, fileName + $" - 복사본 ({i})" + ext);
+                    newPath = Path.Combine(dirName, fileName + $" - {copyName} ({i})" + ext);
                 i++;
             } while (File.Exists(newPath));
             return newPath;
         }
 
-        public static string MakeNewDirectoryPath(string dirPath) {
+        public static string MakeNewDirectoryPath(string dirPath, string copyName = "New") {
             var dirName = Path.GetDirectoryName(dirPath);
             var fileName = Path.GetFileName(dirPath);
             string newPath;
@@ -43,9 +43,9 @@ namespace TinyPak {
                 if (i == 0)
                     newPath = Path.Combine(dirName, fileName);
                 else if (i == 1)
-                    newPath = Path.Combine(dirName, fileName + " - 복사본");
+                    newPath = Path.Combine(dirName, fileName + $" - {copyName}");
                 else
-                    newPath = Path.Combine(dirName, fileName + $" - 복사본 ({i})");
+                    newPath = Path.Combine(dirName, fileName + $" - {copyName} ({i})");
                 i++;
             } while (Directory.Exists(newPath));
             return newPath;
