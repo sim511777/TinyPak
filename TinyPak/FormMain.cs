@@ -24,7 +24,7 @@ namespace TinyPak {
             var dir = new DirectoryInfo(dlg.SelectedPath);                      // 입력 디렉토리
             string pakPath = Util.MakeNewFilePath(dlg.SelectedPath + ".pak");   // 출력 파일
 
-            long size;
+            long size = 0;
 
             // 인코딩
             var t0 = Util.GetTimeMs();
